@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>URL Image Zipper</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel">
+        <h1>URL Image Zipper</h1>
+        <p>Upload a CSV containing image links. Best for quick browser batches; use the Python script for huge jobs.</p>
+
+        <label class="dropzone" for="csvFile">
+          <span>Choose CSV file</span>
+          <small>Links can be one per line or inside CSV columns.</small>
+          <input id="csvFile" type="file" accept=".csv,text/csv,text/plain">
+        </label>
+
+        <div class="controls">
+          <label>
+            ZIP name
+            <input id="zipName" type="text" value="images.zip">
+          </label>
+          <label>
+            Download mode
+            <select id="mode">
+              <option value="direct">Direct fetch first</option>
+              <option value="proxy">Proxy fetch first</option>
+            </select>
+          </label>
+          <label>
+            Parallel downloads
+            <input id="concurrency" type="number" min="1" max="32" value="8">
+          </label>
+        </div>
+
+        <details>
+          <summary>Proxy setting for blocked links</summary>
+          <label>
+            Proxy template
+            <input id="proxyTemplate" type="text" value="https://images.weserv.nl/?url={url}">
+          </label>
+          <small>GitHub Pages cannot bypass CORS. If a host blocks browser downloads, a proxy is required.</small>
+        </details>
+
+        <button id="startBtn" type="button" disabled>Download ZIP</button>
+      </section>
+
+      <section class="panel">
+        <div class="status">
+          <strong id="fileStatus">No file selected</strong>
+          <span id="countStatus">0 links</span>
+        </div>
+        <div id="runStatus" class="run-status">Idle</div>
+        <progress id="progress" value="0" max="100"></progress>
+        <ul id="log" class="log"></ul>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
