@@ -14,7 +14,7 @@ https://fcast-automations.github.io/url-into-image-converter/
 2. Upload a `.csv` or text file containing image URLs.
 3. Click `Download ZIP`.
 
-If some links fail, switch `Download mode` to `Proxy fetch first`. GitHub Pages is static, so browser-blocked hosts need a proxy.
+Default mode is `Direct only - fastest`. If some links fail, try `Direct, then proxy` or `Proxy only`. GitHub Pages is static, so browser-blocked hosts need a proxy.
 
 ## Huge files
 

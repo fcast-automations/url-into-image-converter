@@ -12,6 +12,7 @@ const runStatus = document.querySelector("#runStatus");
 
 let urls = [];
 let activeRun = null;
+let lastPaint = 0;
 
 fileInput.addEventListener("change", async () => {
   const file = fileInput.files[0];
@@ -42,7 +43,7 @@ startBtn.addEventListener("click", async () => {
   const state = { done: 0, ok: 0, failed: 0 };
 
   try {
-    await mapPool(urls, Number(concurrencyInput.value) || 8, async (url, index) => {
+    await mapPool(urls, Number(concurrencyInput.value) || 48, async (url, index) => {
       try {
         const blob = await fetchImage(url, activeRun.signal);
         zip.file(fileName(url, index, blob.type), blob);
@@ -53,7 +54,7 @@ startBtn.addEventListener("click", async () => {
         appendLog(url, error.message, true);
       } finally {
         state.done += 1;
-        updateProgress(state);
+        updateProgress(state, false);
       }
     });
 
@@ -62,7 +63,7 @@ startBtn.addEventListener("click", async () => {
     }
 
     runStatus.textContent = "Creating ZIP...";
-    downloadBlob(await zip.generateAsync({ type: "blob" }), cleanZipName(zipNameInput.value));
+    downloadBlob(await zip.generateAsync({ type: "blob", compression: "STORE", streamFiles: true }), cleanZipName(zipNameInput.value));
     runStatus.textContent = `${state.done}/${urls.length} done - ${state.ok} ok - ${state.failed} failed`;
   } catch (error) {
     appendLog("Run stopped", error.message, true);
@@ -78,8 +79,7 @@ function extractUrls(text) {
 }
 
 async function fetchImage(url, signal) {
-  const directFirst = modeInput.value === "direct";
-  const attempts = directFirst ? [url, proxiedUrl(url)] : [proxiedUrl(url), url];
+  const attempts = fetchAttempts(url);
   let lastError = new Error("download blocked");
 
   for (const attempt of attempts.filter(Boolean)) {
@@ -97,9 +97,15 @@ async function fetchImage(url, signal) {
   throw lastError;
 }
 
+function fetchAttempts(url) {
+  if (modeInput.value === "proxy") return [proxiedUrl(url)];
+  if (modeInput.value === "direct-proxy") return [url, proxiedUrl(url)];
+  return [url];
+}
+
 async function mapPool(items, limit, worker) {
   let cursor = 0;
-  const size = Math.max(1, Math.min(limit, 32, items.length));
+  const size = Math.max(1, Math.min(limit, 128, items.length));
   const runners = Array.from({ length: size }, async () => {
     while (cursor < items.length) {
       const index = cursor;
@@ -110,7 +116,10 @@ async function mapPool(items, limit, worker) {
   await Promise.all(runners);
 }
 
-function updateProgress(state) {
+function updateProgress(state, force) {
+  const now = performance.now();
+  if (!force && state.done < urls.length && now - lastPaint < 100) return;
+  lastPaint = now;
   progress.value = Math.round((state.done / urls.length) * 100);
   runStatus.textContent = `${state.done}/${urls.length} done - ${state.ok} ok - ${state.failed} failed`;
 }

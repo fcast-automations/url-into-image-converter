@@ -26,13 +26,14 @@
           <label>
             Download mode
             <select id="mode">
-              <option value="direct">Direct fetch first</option>
-              <option value="proxy">Proxy fetch first</option>
+              <option value="direct">Direct only - fastest</option>
+              <option value="direct-proxy">Direct, then proxy</option>
+              <option value="proxy">Proxy only</option>
             </select>
           </label>
           <label>
             Parallel downloads
-            <input id="concurrency" type="number" min="1" max="32" value="8">
+            <input id="concurrency" type="number" min="1" max="128" value="48">
           </label>
         </div>
 
